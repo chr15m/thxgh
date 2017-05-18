@@ -1,0 +1,6 @@
+.*.swp
+*.pyc
+virtualenv
+thxgh.egg-info
+MANIFEST
+dist
