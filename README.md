@@ -1,4 +1,6 @@
-Obtain GitHub user profile information.
+CLI for GitHub user contrib graph & language stats
+
+[This tool is intended to facilitate the archiving of your public data hosted on GitHub](https://help.github.com/articles/github-terms-of-service/#5-scraping).
 
 Currently supports:
 
