@@ -1,26 +1,35 @@
 #!/usr/bin/env hy
 (import
   [os]
+  [re]
   [json]
   [datetime [datetime]]
   [urllib2 [urlopen]] 
   [bs4 [BeautifulSoup]])
 
+(require [hy.contrib.loop [loop]])
+
 (def urls
  {:search "https://github.com/search?utf8=%%E2%%9C%%93&q=user%%3A%s+fork%%3Atrue&type=Repositories&ref=advsearch"
-  :home "https://github.com/%s"})
+  :home "https://github.com/%s"
+  :repos "https://api.github.com/users/%s/repos?per_page=1000"})
 
 (defn usage [args]
   (+ "Usage: " (get args 0) " [--contributions|--stats] github-username\n"
      "\t--contributions will print the SVG contributions graph to stdout.\n"
-     "\t--stats will print JSON formatted statistics for the user to stdout."))
+     "\t--stats will print JSON formatted statistics for the user to stdout.\n"
+     "\t--repos will print JSON formatted list of user's public repos."))
+
+(defn fetch [url username]
+  (->> username
+       (% url)
+       (urlopen)))
 
 (defn scrape-github-page [url username]
   (BeautifulSoup
-    (->> username
-         (% url)
-         (urlopen)
-         (.read))
+    (->
+      (fetch url username)
+      (.read))
     "html.parser"))
 
 (defn extract-digits [string]
@@ -48,9 +57,67 @@
 
         :indent 2))))
 
+(defn repos-keep-keys [repos]
+  (list-comp
+    (dict-comp
+      k (get r k)
+      [k r]
+      (in k ["id"
+             "stargazers_count"
+             "watchers_count"
+             "updated_at"
+             "created_at"
+             "full_name"
+             "name"
+             "description"
+             "url"
+             "size"
+             "language"
+             "fork"
+             "forks_count"
+             "forks"
+             "open_issues_count"
+             "open_issues"
+             "watchers_count"
+             "watchers"
+             "clone_url"
+             "ssh_url"]))
+    [r repos]))
+
+(defn next-link [request]
+  (first (list-comp (re.sub ".*<(.*)>; rel=\"next\".*" "\\1" h)
+                    [h (. (request.info) headers)]
+                    (and
+                      (.startswith h "Link")
+                      (re.search "; rel=\"next\"" h)))))
+
+(defn fetch-repos [username &optional [url None]]
+  (let [request (if url
+                  (urlopen url)
+                  (fetch (get urls :repos) username))
+        repos (-> (request.read)
+                  (json.loads)
+                  (repos-keep-keys))
+        repos-next-link (next-link request)]
+    (if repos-next-link
+      (+ repos (fetch-repos username :url repos-next-link))
+      repos)))
+
+(defn command-repos [username]
+  (-> (fetch-repos username)
+      (sorted :key (fn [r] (,
+                            (get r "stargazers_count")
+                            (get r "watchers_count")
+                            (get r "updated_at")
+                            (get r "created_at")))
+              :reverse True)
+      (json.dumps :indent 2)
+      (print)))
+
 (defn scrape [command username]
   (cond [(= command "--contributions") (command-contributions username)]
         [(= command "--stats") (command-stats username)]
+        [(= command "--repos") (command-repos username)]
         [True (print "Unknown command" command)]))
 
 (defn main [args]
