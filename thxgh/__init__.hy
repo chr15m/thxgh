@@ -39,23 +39,22 @@
 
 (defn command-contributions [username]
   (let [user-page (scrape-github-page (get urls :home) username)]
-    (print (user-page.find :class "js-calendar-graph-svg"))))
+    (user-page.find :class "js-calendar-graph-svg")))
 
-(defn command-stats [username]
+(defn fetch-stats [username]
   (let [user-page (scrape-github-page (get urls :home) username)
         stats-page (scrape-github-page (get urls :search) username)]
-    (print
-      (json.dumps
-        {"timestamp" (-> (datetime.now) (.isoformat))
-         "contributions-year" (-> user-page (.find :class "js-contribution-graph") (. h2) (. string) (extract-digits))
-         "stats" (list-comp (-> (. stat text) (.replace " " "") (.split "\n") (cut 1 -2 2)) [stat (-> user-page (.find-all :class "underline-nav-item"))] (stat.find :class "counter"))
-         ; TODO: :class "pinned-repo-item"
-         "languages" (list-comp {"language" (-> language (.find :class "filter-item") (. text) (.replace " " "") (.split "\n") (get 2))
-                                 "percent" (-> language (.find :class "bar") (get "style") (extract-digits))
-                                 "count" (-> language (.find :class "count") (. text) (int))}
-                                [language (-> stats-page (.find :class "filter-list") (.find-all "li"))])}
+    {"timestamp" (-> (datetime.now) (.isoformat))
+     "contributions-year" (-> user-page (.find :class "js-contribution-graph") (. h2) (. string) (extract-digits))
+     "stats" (list-comp (-> (. stat text) (.replace " " "") (.split "\n") (cut 1 -2 2)) [stat (-> user-page (.find-all :class "underline-nav-item"))] (stat.find :class "counter"))
+     ; TODO: :class "pinned-repo-item"
+     "languages" (list-comp {"language" (-> language (.find :class "filter-item") (. text) (.replace " " "") (.split "\n") (get 2))
+                             "percent" (-> language (.find :class "bar") (get "style") (extract-digits))
+                             "count" (-> language (.find :class "count") (. text) (int))}
+                            [language (-> stats-page (.find :class "filter-list") (.find-all "li"))])}))
 
-        :indent 2))))
+(defn command-stats [username]
+  (json.dumps (fetch-stats username) :indent 2))
 
 (defn repos-keep-keys [repos]
   (list-comp
@@ -70,7 +69,7 @@
              "full_name"
              "name"
              "description"
-             "url"
+             "html_url"
              "size"
              "language"
              "fork"
@@ -99,25 +98,25 @@
                   (json.loads)
                   (repos-keep-keys))
         repos-next-link (next-link request)]
-    (if repos-next-link
-      (+ repos (fetch-repos username :url repos-next-link))
-      repos)))
-
-(defn command-repos [username]
-  (-> (fetch-repos username)
+    (->
+      (if repos-next-link
+        (+ repos (fetch-repos username :url repos-next-link))
+        repos)
       (sorted :key (fn [r] (,
                             (get r "stargazers_count")
                             (get r "watchers_count")
                             (get r "updated_at")
                             (get r "created_at")))
-              :reverse True)
-      (json.dumps :indent 2)
-      (print)))
+              :reverse True))))
+
+(defn command-repos [username]
+  (-> (fetch-repos username)
+      (json.dumps :indent 2)))
 
 (defn scrape [command username]
-  (cond [(= command "--contributions") (command-contributions username)]
-        [(= command "--stats") (command-stats username)]
-        [(= command "--repos") (command-repos username)]
+  (cond [(= command "--contributions") (print (command-contributions username))]
+        [(= command "--stats") (print (command-stats username))]
+        [(= command "--repos") (print (command-repos username))]
         [True (print "Unknown command" command)]))
 
 (defn main [args]
