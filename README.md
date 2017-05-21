@@ -22,12 +22,13 @@ See usage help:
 	Usage: ./bin/thxgh [--contributions|--stats] github-username
 		--contributions will print the SVG contributions graph to stdout.
 		--stats will print JSON formatted statistics for the user to stdout.
+		--repos will print JSON formatted list of repositories.
 
 Download contributions graph SVG for a user:
 
 	$ ./bin/thxgh --contributions chr15m > chr15m-contributions.svg
 
-Get language statistics for a user:
+Get language statistics and pinned repositories for a user:
 
 	$ ./bin/thxgh --stats chr15m
 	{
@@ -37,54 +38,39 @@ Get language statistics for a user:
 	      "percent": 23, 
 	      "language": "JavaScript"
 	    }, 
-	    {
-	      "count": 24, 
-	      "percent": 19, 
-	      "language": "PureData"
-	    }, 
-	    {
-	      "count": 17, 
-	      "percent": 14, 
-	      "language": "Python"
-	    }, 
-	    {
-	      "count": 15, 
-	      "percent": 12, 
-	      "language": "Clojure"
-	    }, 
-	    {
-	      "count": 10, 
-	      "percent": 8, 
-	      "language": "C"
-	    }, 
-	    {
-	      "count": 6, 
-	      "percent": 5, 
-	      "language": "Hy"
-	    }, 
-	    {
-	      "count": 4, 
-	      "percent": 3, 
-	      "language": "Java"
-	    }, 
-	    {
-	      "count": 4, 
-	      "percent": 3, 
-	      "language": "PHP"
-	    }, 
-	    {
-	      "count": 3, 
-	      "percent": 4, 
-	      "language": "C++"
-	    }, 
-	    {
-	      "count": 3, 
-	      "percent": 4, 
-	      "language": "Shell"
-	    }
+	  ...
 	  ], 
 	  "timestamp": "2017-05-18T09:52:18.093690", 
 	  "stats": [], 
-	  "contributions-year": 2254
+	  "contributions-year": 2254,
+
 	}
+
+Get list of repositories for a user:
+
+	$ ./bin/thxgh --repos
+	[
+	  {
+	    "fork": true, 
+	    "open_issues_count": 0, 
+	    "watchers": 0, 
+	    "description": "Mathematical expression evaluator in JavaScript", 
+	    "name": "js-expression-eval", 
+	    "forks": 0, 
+	    "created_at": "2012-12-01T05:39:44Z", 
+	    "forks_count": 0, 
+	    "updated_at": "2013-01-13T10:58:59Z", 
+	    "html_url": "https://github.com/chr15m/js-expression-eval", 
+	    "language": "JavaScript", 
+	    "clone_url": "https://github.com/chr15m/js-expression-eval.git", 
+	    "watchers_count": 0, 
+	    "full_name": "chr15m/js-expression-eval", 
+	    "ssh_url": "git@github.com:chr15m/js-expression-eval.git", 
+	    "open_issues": 0, 
+	    "stargazers_count": 0, 
+	    "id": 6950716, 
+	    "size": 137
+	  }, 
+	  ...
+	]
 
