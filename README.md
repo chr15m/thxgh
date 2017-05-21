@@ -2,11 +2,13 @@ CLI for GitHub user contrib graph & statistics
 
 [This tool is intended to facilitate the archiving of your public data hosted on GitHub](https://help.github.com/articles/github-terms-of-service/#5-scraping).
 
-Currently supports:
+Currently supported user stats:
 
- * User's contributions graph.
- * User's language statistics.
- * User's yearly contributions count.
+ * Contributions graph.
+ * Language statistics.
+ * Total repos, stars, followers, following.
+ * Pinned repositories.
+ * Yearly contributions count.
 
 ### Install
 
