@@ -59,7 +59,18 @@ Get language statistics and pinned repositories for a user:
 	      "294"
 	    ]
 	  ],
-	  "contributions-year": 2254
+	  "contributions-year": 2254,
+	  "pinned-repos": [
+	    {
+	      "name": "thxgh",
+	      "language": "Hy",
+	      "url": "https://github.com/chr15m/thxgh",
+	      "stars": 2,
+	      "forks": 1,
+	      "description": "CLI for GitHub user contrib graph & stats"
+	    },
+	    ...
+	  ]
 	}
 
 Get list of repositories for a user:

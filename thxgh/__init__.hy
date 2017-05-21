@@ -41,13 +41,26 @@
   (let [user-page (scrape-github-page (get urls :home) username)]
     (user-page.find :class "js-calendar-graph-svg")))
 
+(defn stat-int-element [s t]
+  (let [result
+        (-> s (.find :href (fn [e] (and e (.endswith e t)))))]
+    (if result
+      (int (or (first (re.findall "\d+" result.text)) 0))
+      0)))
+
 (defn fetch-stats [username]
   (let [user-page (scrape-github-page (get urls :home) username)
         stats-page (scrape-github-page (get urls :search) username)]
     {"timestamp" (-> (datetime.now) (.isoformat))
      "contributions-year" (-> user-page (.find :class "js-contribution-graph") (. h2) (. string) (extract-digits))
-     "stats" (list-comp (-> (. stat text) (.replace " " "") (.split "\n") (cut 1 -2 2)) [stat (-> user-page (.find-all :class "underline-nav-item"))] (stat.find :class "counter"))
-     ; TODO: :class "pinned-repo-item"
+     "stats" (list-comp (-> (. stat text) (.replace " " "") (.split "\n") (cut 1 -2 2)) [stat (-> user-page (.find-all :class "underline-nav-item"))] (stat.find :class "Counter"))
+     "pinned-repos" (list-comp {"name" (-> stat (.find :class "js-repo") (. text))
+                                "url" (+ "https://github.com" (-> stat (.find "a" :class "text-bold") (get "href")))
+                                "description" (-> stat (.find :class "pinned-repo-desc") (. text))
+                                "language" (-> stat (.find :class "repo-language-color") (. next_sibling) (.replace " " "") (.replace "\n" ""))
+                                "stars" (stat-int-element stat "stargazers")
+                                "forks" (stat-int-element stat "network")}
+                               [stat (-> user-page (.find-all :class "pinned-repo-item"))])
      "languages" (list-comp {"language" (-> language (.find :class "filter-item") (. text) (.replace " " "") (.split "\n") (get 2))
                              "percent" (-> language (.find :class "bar") (get "style") (extract-digits))
                              "count" (-> language (.find :class "count") (. text) (int))}
