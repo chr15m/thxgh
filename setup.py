@@ -24,7 +24,7 @@ setup(name='thxgh',
       #    'https://github.com/chr15m/...',
       #],
       install_requires=[
-          'hy==0.12.0',
+          'hy==0.12.1',
           'beautifulsoup4==4.3.2',
       ],
       scripts=['bin/thxgh']
